@@ -1,0 +1,4 @@
+include/** linguist-vendored
+libs/** linguist-vendored
+
+shaders/** linguist-language=GLSL
