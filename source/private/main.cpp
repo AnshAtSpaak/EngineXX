@@ -11,8 +11,10 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
-const unsigned int scrWidth {800};
-const unsigned int scrHeight {600};
+const unsigned int scrWidth { 1200 };
+const unsigned int scrHeight { 900 };
+
+float mixFactor { 0.2f };
 
 int main()
 {
@@ -75,17 +77,18 @@ int main()
   glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
   glEnableVertexAttribArray(2);
 
-  unsigned int texture;
-  glGenTextures(1, &texture);
-  glBindTexture(GL_TEXTURE_2D, texture);
+  unsigned int texture01, texture02;
+  glGenTextures(1, &texture01);
+  glBindTexture(GL_TEXTURE_2D, texture01);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
   int width, height, nrChannels;
-  unsigned char* data { stbi_load(IMAGE_DIR "container.jpg", &width, &height, &nrChannels, 0)};
+  stbi_set_flip_vertically_on_load(true);
+  unsigned char* data { stbi_load(IMAGE_DIR "container.jpg", &width, &height, &nrChannels, 0) };
   if (data)
   {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -97,6 +100,30 @@ int main()
   }
   stbi_image_free(data);
 
+  glGenTextures(1, &texture02);
+  glBindTexture(GL_TEXTURE_2D, texture02);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+  data = stbi_load(IMAGE_DIR "awesomeface.png", &width, &height, &nrChannels, 0);
+  if (data)
+  {
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+  }
+  else
+  {
+    std::cout << "FAILED to load texture" << std::endl;
+  }
+  stbi_image_free(data);
+
+  myShader.use();
+
+  myShader.setInt("texture01", 0);
+  myShader.setInt("texture02", 1);
 
   while (!glfwWindowShouldClose(window))
   {
@@ -107,7 +134,12 @@ int main()
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glBindTexture(GL_TEXTURE_2D, texture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture01);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture02);
+  
+    myShader.setFloat("mixFactor", mixFactor);
 
     myShader.use();
     glBindVertexArray(VAO);
@@ -135,4 +167,16 @@ void processInput(GLFWwindow* window)
 {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
   { glfwSetWindowShouldClose(window, true); }
+
+  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+  {
+    mixFactor += 0.01;
+    if (mixFactor >= 1.0) { mixFactor = 1.0; }
+  }
+
+  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+  {
+    mixFactor -= 0.01;
+    if (mixFactor <= 0.0) { mixFactor = 0.0; }
+  }
 }

@@ -2,8 +2,8 @@
 
 Custom shader engine
 
-<!-- ## Gallery -->
-<!-- ![OpenGL](Images/gl.png) -->
+## Snapshot
+![OpenGL](./ss.png)
 
 ## Third Party Libs
 - GLFW
