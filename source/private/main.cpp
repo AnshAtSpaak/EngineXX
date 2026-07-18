@@ -1,8 +1,10 @@
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb/stb_image.h>
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <stb/stb_image.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "shader.hpp"
 
@@ -140,6 +142,13 @@ int main()
     glBindTexture(GL_TEXTURE_2D, texture02);
   
     myShader.setFloat("mixFactor", mixFactor);
+
+    glm::mat4 trans = glm::mat4(1.0f);
+    trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+    trans = glm::rotate(trans, static_cast<float>(glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
+
+    unsigned int transformLoc { static_cast<unsigned int>(glGetUniformLocation(myShader.m_ID, "transform")) };
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
     myShader.use();
     glBindVertexArray(VAO);

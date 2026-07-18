@@ -39,4 +39,5 @@ target_link_libraries(enginexx
   PRIVATE
   glad
   glfw3
+  stb_image
 )
