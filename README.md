@@ -8,3 +8,5 @@ Custom shader engine
 ## Third Party Libs
 - GLFW
 - GLAD
+- STB_IMAGE
+- GLM

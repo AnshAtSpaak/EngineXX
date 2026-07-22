@@ -16,6 +16,13 @@ void processInput(GLFWwindow* window);
 const unsigned int scrWidth { 1200 };
 const unsigned int scrHeight { 900 };
 
+namespace Camera
+{
+  glm::vec3 position { glm::vec3(0.0f, 0.0f, 3.0f) };
+  glm::vec3 front { glm::vec3(0.0f, 0.0f, -1.0f) };
+  glm::vec3 up { glm::vec3(0.0f, 1.0f, 0.0f) };
+};
+
 float mixFactor { 0.2f };
 
 int main()
@@ -167,6 +174,9 @@ int main()
   myShader.setInt("texture01", 0);
   myShader.setInt("texture02", 1);
 
+  glm::mat4 projection { glm::mat4(1.0f) };
+  projection = glm::perspective(glm::radians(45.0f), static_cast<float>(scrWidth) / static_cast<float>(scrHeight), 0.1f, 100.0f);
+
   while (!glfwWindowShouldClose(window))
   {
     // inputs
@@ -186,10 +196,7 @@ int main()
     myShader.setFloat("mixFactor", mixFactor);
 
     glm::mat4 view { glm::mat4(1.0f) };
-    glm::mat4 projection { glm::mat4(1.0f) };
-
-    projection = glm::perspective(glm::radians(45.0f), static_cast<float>(scrWidth) / static_cast<float>(scrHeight), 0.1f, 100.0f);
-    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    view = glm::lookAt(Camera::position, Camera::position + Camera::front, Camera::up);
 
     myShader.setMat4("projection", projection);
     myShader.setMat4("view", view);
@@ -240,4 +247,17 @@ void processInput(GLFWwindow* window)
     mixFactor -= 0.01;
     if (mixFactor <= 0.0) { mixFactor = 0.0; }
   }
+
+  const float cameraSpeed { 0.05f };
+  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+  { Camera::position += cameraSpeed * Camera::front; }
+
+  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+  { Camera::position -= cameraSpeed * Camera::front; }
+
+  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+  { Camera::position -= glm::normalize(glm::cross(Camera::front, Camera::up)) * cameraSpeed; }
+
+  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+  { Camera::position += glm::normalize(glm::cross(Camera::front, Camera::up)) * cameraSpeed; }
 }
